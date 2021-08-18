@@ -1,0 +1,87 @@
+import scala.concurrent.Future
+import scala.util.Random
+import scala.concurrent.ExecutionContext.Implicits.global
+
+//Пользователь лифта
+class User {
+  //Его расположение и направление движения
+  var floorUser = 0
+  var floorMove = 0
+
+  //Устанавливаем его текущие координаты и будущие координаты
+  def setFloorAndMove() {
+    val randFloorUser: Random.type = scala.util.Random
+    val startFloorUser: Int = randFloorUser.nextInt(19) + 1
+    val moveFloorUser: Int = randFloorUser.nextInt(19) + 1
+
+    floorUser = startFloorUser; println("Ваш этаж: " + floorUser)
+    floorMove = moveFloorUser; println("На какой этаж едите: " + floorMove)
+  }
+}
+
+//Лифт
+class Elevator {
+  //Старт лифта с случано сгенерируемого этажа
+  private val randFloor: Random.type = scala.util.Random
+  var startFloor: Int = randFloor.nextInt(19) + 1
+
+  //Движение лифта по этажам
+  def move(position: Int, floorUser: Int) = {
+    //Эмемент остановки лифта
+    Thread.sleep(4000)
+    println("Двери закрываются.")
+    //Начало движения лифта
+    while (startFloor != position) {
+      Thread.sleep(4000)
+      if (startFloor < position) { println("Лифт на " + startFloor + " этаже!"); startFloor += 1 }
+      else { println("Лифт на " + startFloor + " этаже!"); startFloor -= 1}
+    }
+    Thread.sleep(4000)
+    println("Лифт приехал на " + startFloor + " этаж! Двери открываются.")
+    Thread.sleep(4000)
+    println("Двери закрываются.")
+    while (startFloor != floorUser) {
+      Thread.sleep(4000)
+      if (startFloor < floorUser) { println("Лифт на " + startFloor + " этаже!"); startFloor += 1 }
+      else { println("Лифт на " + startFloor + " этаже!"); startFloor -= 1}
+    }
+    Thread.sleep(4000)
+    println("Лифт приехал на " + startFloor + " этаж! Двери открываются.")
+  }
+}
+
+//Поехали!
+object LIFT extends App {
+  //Создаем лифт
+  val elev = new Elevator
+
+  //Вызов лифта
+  def moveFloors(elev: Elevator): Future[Unit] = Future {
+    //Пользователь вызывает лифт
+    //Вопрос про вызовт лифта
+    print("Вызвать лифт (+ | -): ")
+    var question = scala.io.StdIn.readLine()
+    while (question == "+" || question == "-"){
+      //Выполняем вызов или прощаемся
+      question match {
+        case "+" => {
+          //Далее создаем пользователя лифта и едем
+          println("Лифт на " + elev.startFloor + " этаже.")
+          val userElevator = new User
+          userElevator.setFloorAndMove()
+          elev.move(userElevator.floorUser, userElevator.floorMove)
+          println
+          print("Вызвать лифт (+ | -): ")
+          question = scala.io.StdIn.readLine()
+        }
+        case "-" => println("До свидания!"); question = "X"
+      }
+    }
+  }
+
+  //Вызываем лифт
+  moveFloors(elev)
+
+  //Пусть ресурс времени работы лифта будет 5 минут
+  Thread.sleep(300000)
+}
